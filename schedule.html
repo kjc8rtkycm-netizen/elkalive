@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>elkalive — Билеты</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#050a08;--bg2:#0a1410;--bg3:#0f1e18;--bg4:#152a22;--text:#eef7f1;--text2:#8fb3a3;--text3:#5a7a6c;--mint:#4ade80;--mint2:#22c55e;--mint3:#86efac;--mint-soft:rgba(74,222,128,.1);--mint-glow:rgba(74,222,128,.6);--border:rgba(74,222,128,.14);--amber:#facc15;--blue:#60a5fa}
+body{font-family:-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:40px}
+.header{display:flex;align-items:center;gap:10px;padding:14px;background:linear-gradient(180deg,var(--bg2),transparent);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50}
+.logo{width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,var(--mint3),var(--mint),var(--mint2));display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff;font-weight:900;box-shadow:0 6px 24px var(--mint-glow)}
+.back{background:var(--bg3);border:1px solid var(--border);color:var(--text);width:40px;height:40px;border-radius:12px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;text-decoration:none}
+.brand{flex:1;font-size:17px;font-weight:900}
+.brand span{color:var(--mint)}
+.container{padding:14px;max-width:800px;margin:0 auto}
+.search-card{background:linear-gradient(135deg,var(--bg3),var(--bg4));border:1px solid var(--border);border-radius:18px;padding:18px;margin-bottom:16px}
+.field{margin-bottom:12px;position:relative}
+.field label{font-size:10.5px;color:var(--text2);display:block;margin-bottom:7px;font-weight:800;text-transform:uppercase}
+.field input{width:100%;padding:13px 15px;border-radius:12px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:14px;outline:none;font-family:inherit}
+.field input:focus{border-color:var(--mint);box-shadow:0 0 0 4px var(--mint-soft)}
+.btn{width:100%;padding:15px;border:none;border-radius:13px;background:linear-gradient(135deg,var(--mint3),var(--mint),var(--mint2));color:#fff;font-weight:900;font-size:14px;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 6px 24px var(--mint-glow)}
+.btn:active{transform:scale(.96)}
+.btn:disabled{opacity:.5}
+.suggestions{position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--mint);border-radius:12px;margin-top:4px;max-height:250px;overflow-y:auto;z-index:100;display:none}
+.suggestions.show{display:block}
+.suggestion{padding:12px 15px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border)}
+.suggestion:active{background:var(--mint-soft);color:var(--mint)}
+.suggestion:last-child{border-bottom:none}
+.suggestion .region{font-size:10px;color:var(--text3);margin-top:2px}
+.route-card{background:linear-gradient(135deg,var(--bg3),var(--bg4));border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:10px;position:relative;overflow:hidden}
+.route-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--mint3),var(--mint));box-shadow:0 0 14px var(--mint-glow)}
+.route-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+.route-number{font-size:15px;font-weight:900;color:var(--mint);display:flex;align-items:center;gap:6px}
+.route-class{font-size:10px;font-weight:900;padding:3px 8px;border-radius:6px;background:var(--mint-soft);color:var(--mint);border:1px solid var(--mint);white-space:nowrap}
+.route-time{font-size:22px;font-weight:900;margin-bottom:6px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.route-time .arrow{color:var(--mint);font-size:16px}
+.route-duration{font-size:12px;color:var(--text2);font-weight:700}
+.route-stations{font-size:12px;color:var(--text2);margin-bottom:8px;line-height:1.5}
+.route-vehicle{font-size:12px;color:var(--mint);font-weight:700;padding:6px 12px;background:var(--mint-soft);border-radius:8px;display:inline-block;margin-bottom:8px;border:1px solid var(--border)}
+.route-meta{font-size:11px;color:var(--text3);margin-bottom:10px;display:flex;gap:14px;flex-wrap:wrap}
+.route-buy{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--mint3),var(--mint),var(--mint2));color:#fff;text-decoration:none;font-weight:900;font-size:13px;padding:11px 22px;border-radius:11px;box-shadow:0 6px 20px var(--mint-glow)}
+.route-buy:active{transform:scale(.95)}
+.loader{width:34px;height:34px;border:3px solid var(--border);border-top-color:var(--mint);border-radius:50%;animation:spin .9s linear infinite;margin:50px auto 14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:50px 20px;color:var(--text2)}
+.empty .ic{font-size:48px;color:var(--mint);opacity:.35;margin-bottom:14px}
+.empty .t{font-size:14px;font-weight:800;color:var(--text);margin-bottom:6px}
+.empty .d{font-size:12px;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="header">
+<a href="index.html" class="back"><i class="fas fa-arrow-left"></i></a>
+<div class="logo">Э</div>
+<div class="brand">elka<span>live</span> • Билеты</div>
+</div>
+<div class="container">
+<div class="search-card">
+<div class="field">
+<label>Откуда</label>
+<input type="text" id="fromInput" placeholder="Москва (Ярославский вокзал)" autocomplete="off">
+<div class="suggestions" id="fromSuggestions"></div>
+</div>
+<div class="field">
+<label>Куда</label>
+<input type="text" id="toInput" placeholder="Сергиев Посад" autocomplete="off">
+<div class="suggestions" id="toSuggestions"></div>
+</div>
+<div class="field">
+<label>Дата</label>
+<input type="date" id="dateInput">
+</div>
+<button class="btn" id="searchBtn" onclick="searchRoutes()"><i class="fas fa-magnifying-glass"></i> Найти рейсы</button>
+</div>
+<div id="results"></div>
+</div>
+<script>
+const WORKER_URL='https://cool-night-c9a5.sashurovpelmen.workers.dev';
+const YANDEX_KEY='43ecbcfe-42c5-4874-85af-4b6b3042c843';
+const FB_URL='https://nexik-63c6c-default-rtdb.firebaseio.com';
+let allStations=[];
+let fromStation=null;
+let toStation=null;
+let stationsLoaded=false;
+document.getElementById('dateInput').valueAsDate=new Date();
+async function loadStations(){
+  if(stationsLoaded)return;
+  try{
+    const res=await fetch(FB_URL+'/stations.json');
+    const data=await res.json();
+    allStations=Object.values(data||{});
+    stationsLoaded=true;
+    console.log('Загружено станций:',allStations.length);
+  }catch(e){console.error('Ошибка загрузки станций:',e)}
+}
+function showSuggestions(input,container,type){
+  const q=input.value.trim().toLowerCase();
+  if(q.length<2){container.classList.remove('show');return}
+  const matches=allStations.filter(s=>(s.title||'').toLowerCase().includes(q)).slice(0,10);
+  if(matches.length===0){container.classList.remove('show');return}
+  container.innerHTML=matches.map(s=>'<div class="suggestion" onclick="selectStation(\''+type+'\',\''+s.code+'\')"><div>'+escHtml(s.title)+'</div><div class="region">'+escHtml(s.region||'')+'</div></div>').join('');
+  container.classList.add('show');
+}
+function selectStation(type,code){
+  const st=allStations.find(s=>s.code===code);
+  if(!st)return;
+  if(type==='from'){fromStation=st;document.getElementById('fromInput').value=st.title;document.getElementById('fromSuggestions').classList.remove('show')}
+  else{toStation=st;document.getElementById('toInput').value=st.title;document.getElementById('toSuggestions').classList.remove('show')}
+}
+function escHtml(t){const d=document.createElement('div');d.textContent=t==null?'':String(t);return d.innerHTML}
+function fmtTime(iso){if(!iso)return'—';const d=new Date(iso);return d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})}
+function fmtDuration(sec){if(!sec)return'';const m=Math.round(sec/60);if(m<60)return m+'мин';const h=Math.floor(m/60);const rm=m%60;return h+'ч '+(rm?rm+'мин':'')}
+async function searchRoutes(){
+  if(!fromStation||!toStation){alert('Выберите станции из подсказок');return}
+  const date=document.getElementById('dateInput').value;
+  if(!date){alert('Выберите дату');return}
+  const btn=document.getElementById('searchBtn');
+  btn.disabled=true;
+  btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Загрузка...';
+  const results=document.getElementById('results');
+  results.innerHTML='<div class="loader"></div>';
+  try{
+    const url=WORKER_URL+'/v3.0/search/?apikey='+YANDEX_KEY+'&from='+fromStation.code+'&to='+toStation.code+'&date='+date+'&format=json';
+    const res=await fetch(url);
+    const data=await res.json();
+    if(data.error){
+      results.innerHTML='<div class="empty"><div class="ic"><i class="fas fa-triangle-exclamation"></i></div><div class="t">Ошибка</div><div class="d">'+escHtml(data.error.text||'')+'</div></div>';
+      return;
+    }
+    const segs=data.segments||[];
+    if(segs.length===0){
+      results.innerHTML='<div class="empty"><div class="ic"><i class="fas fa-train"></i></div><div class="t">Рейсов не найдено</div><div class="d">'+escHtml(fromStation.title)+' → '+escHtml(toStation.title)+'</div></div>';
+      return;
+    }
+    segs.sort((a,b)=>new Date(a.departure)-new Date(b.departure));
+    results.innerHTML='<div style="font-size:11px;color:var(--text2);font-weight:800;text-transform:uppercase;margin:16px 0 10px">Найдено рейсов: '+segs.length+'</div>'+segs.map(renderRoute).join('');
+  }catch(e){
+    results.innerHTML='<div class="empty"><div class="ic"><i class="fas fa-triangle-exclamation"></i></div><div class="t">Ошибка</div><div class="d">'+escHtml(e.message)+'</div></div>';
+  }finally{
+    btn.disabled=false;
+    btn.innerHTML='<i class="fas fa-magnifying-glass"></i> Найти рейсы';
+  }
+}
+function renderRoute(seg){
+  const num=seg.thread?.number||'—';
+  const dep=fmtTime(seg.departure);
+  const arr=fmtTime(seg.arrival);
+  const dur=fmtDuration(seg.duration);
+  const vehicle=seg.thread?.vehicle||'номер состава не указан';
+  const carrier=seg.thread?.carrier?.title||'';
+  const cls=seg.thread?.express_type||seg.thread?.transport_subtype?.title||'';
+  const price=seg.tickets_info?.places?.[0]?.price?.whole;
+  const fromName=seg.from?.title||fromStation.title;
+  const toName=seg.to?.title||toStation.title;
+  const dateStr=(seg.departure||'').split('T')[0];
+  const buyUrl='https://rasp.yandex.ru/search/suburban/?fromName='+encodeURIComponent(fromName)+'&toName='+encodeURIComponent(toName)+'&when='+dateStr;
+  const isSuburban=seg.thread?.transport_type==='suburban';
+  const icon=isSuburban?'⚡':'🚂';
+  const typeLabel=isSuburban?'Электричка':'Поезд';
+  return '<div class="route-card"><div class="route-head"><div class="route-number">'+icon+' '+escHtml(num)+'</div>'+(cls?'<div class="route-class">'+escHtml(cls)+'</div>':'')+'</div><div class="route-time">'+dep+' <span class="arrow">→</span> '+arr+' <span class="route-duration">'+(dur?'('+dur+')':'')+'</span></div><div class="route-stations"><i class="fas fa-map-pin"></i> '+escHtml(fromName)+' → '+escHtml(toName)+'</div><div class="route-vehicle">🚂 '+escHtml(vehicle)+'</div><div class="route-meta"><span>'+typeLabel+'</span>'+(carrier?'<span>'+escHtml(carrier)+'</span>':'')+(price?'<span>'+price+' ₽</span>':'')+'</div><a class="route-buy" href="'+buyUrl+'" target="_blank" rel="noopener"><i class="fas fa-ticket"></i> Купить</a></div>';
+}
+document.getElementById('fromInput').addEventListener('input',function(){showSuggestions(this,document.getElementById('fromSuggestions'),'from')});
+document.getElementById('fromInput').addEventListener('focus',function(){loadStations()});
+document.getElementById('toInput').addEventListener('input',function(){showSuggestions(this,document.getElementById('toSuggestions'),'to')});
+document.getElementById('toInput').addEventListener('focus',function(){loadStations()});
+document.addEventListener('click',function(e){if(!e.target.closest('.field')){document.querySelectorAll('.suggestions').forEach(s=>s.classList.remove('show'))}});
+loadStations();
+</script>
+</body>
+</html>

@@ -915,5 +915,270 @@ console.log('🚂 elkalive v24 — 10 new features');
   setTimeout(fixTickets, 2000);
 })();
 </script>
+  <!-- ========== МОДЕР-ПАНЕЛЬ (только для модеров) ========== -->
+<style>
+/* Кнопка на главной — появляется только у модера */
+#modPanelBtn{display:none;position:fixed;bottom:calc(120px + env(safe-area-inset-bottom,0px));right:14px;width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#c084fc,#8b5cf6);color:#fff;font-size:20px;cursor:pointer;z-index:45;box-shadow:0 8px 26px rgba(192,132,252,.6);border:2px solid rgba(255,255,255,.3);align-items:center;justify-content:center}
+#modPanelBtn.show{display:flex}
+#modPanelBtn:active{transform:scale(.9) rotate(-10deg)}
+
+.mp-overlay{position:fixed;inset:0;background:rgba(0,0,0,.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);z-index:99999;display:none;overflow-y:auto;padding:16px;padding-top:calc(16px + env(safe-area-inset-top,0px))}
+.mp-overlay.active{display:block;animation:fadeIn .3s}
+.mp-box{max-width:900px;margin:0 auto;padding-bottom:40px}
+.mp-header{display:flex;align-items:center;gap:12px;margin-bottom:16px;position:sticky;top:0;background:rgba(10,20,16,.95);backdrop-filter:blur(20px);padding:12px;border-radius:16px;border:1px solid rgba(192,132,252,.3);z-index:10}
+.mp-header h2{font-size:16px;font-weight:900;color:#c084fc;flex:1;filter:drop-shadow(0 0 8px rgba(192,132,252,.6))}
+.mp-header button{background:var(--bg3,#0f1e18);border:1px solid var(--border);color:var(--text);width:40px;height:40px;border-radius:12px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.mp-header button:active{transform:scale(.9)}
+.mp-tab-row{display:flex;gap:6px;margin-bottom:16px;overflow-x:auto;padding-bottom:6px}
+.mp-tab{padding:10px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg3,#0f1e18);color:var(--text2,#8fb3a3);font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap}
+.mp-tab.active{background:linear-gradient(135deg,#c084fc,#8b5cf6);color:#fff;border-color:#c084fc;font-weight:900;box-shadow:0 4px 14px rgba(192,132,252,.5)}
+.mp-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.mp-stat{background:linear-gradient(135deg,var(--bg3,#0f1e18),var(--bg4,#152a22));border:1px solid var(--border);border-radius:16px;padding:16px;text-align:center;position:relative;overflow:hidden}
+.mp-stat::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,currentColor,transparent);filter:blur(1px)}
+.mp-stat .mp-num{font-size:26px;font-weight:900;filter:drop-shadow(0 0 10px currentColor)}
+.mp-stat .mp-lbl{font-size:10px;color:var(--text2,#8fb3a3);text-transform:uppercase;font-weight:800;margin-top:6px;letter-spacing:.5px}
+.mp-stat.c-green{color:#4ade80}
+.mp-stat.c-blue{color:#60a5fa}
+.mp-stat.c-purple{color:#c084fc}
+.mp-stat.c-amber{color:#facc15}
+.mp-stat.c-pink{color:#f472b6}
+.mp-stat.c-red{color:#f87171}
+.mp-stat.c-cyan{color:#22d3ee}
+.mp-stat.c-white{color:#eef7f1}
+.mp-section{background:linear-gradient(135deg,var(--bg3,#0f1e18),var(--bg4,#152a22));border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:16px}
+.mp-section-title{font-size:13px;font-weight:900;color:#c084fc;margin-bottom:12px;display:flex;align-items:center;gap:8px;text-transform:uppercase;letter-spacing:.5px}
+.mp-search{width:100%;padding:12px 15px;border-radius:12px;border:1px solid var(--border);background:var(--bg,#050a08);color:var(--text);font-size:14px;outline:none;margin-bottom:12px;font-family:inherit}
+.mp-search:focus{border-color:#c084fc;box-shadow:0 0 0 4px rgba(192,132,252,.15)}
+.mp-user{display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg,#050a08);border:1px solid var(--border);border-radius:12px;margin-bottom:8px}
+.mp-user.online{border-color:rgba(74,222,128,.5);box-shadow:0 0 14px rgba(74,222,128,.15)}
+.mp-user-avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--mint3,#86efac),var(--mint,#4ade80));display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;font-size:16px;overflow:hidden;flex-shrink:0;position:relative}
+.mp-user-avatar img{width:100%;height:100%;object-fit:cover}
+.mp-user-avatar .on-dot{position:absolute;bottom:0;right:0;width:12px;height:12px;border-radius:50%;background:#22c55e;border:2px solid var(--bg,#050a08);box-shadow:0 0 8px #22c55e}
+.mp-user-info{flex:1;min-width:0}
+.mp-user-info .mp-nick{font-size:13.5px;font-weight:800;color:var(--text);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.mp-user-info .mod-badge{font-size:9px;padding:2px 7px;border-radius:6px;background:#c084fc;color:#fff;font-weight:900}
+.mp-user-info .mp-meta{font-size:10.5px;color:var(--text3,#5a7a6c);margin-top:3px}
+.mp-user-actions{flex-shrink:0}
+.mp-btn-add{background:rgba(74,222,128,.12);color:#4ade80;border:1px solid #4ade80;padding:8px 12px;border-radius:10px;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;white-space:nowrap}
+.mp-btn-add:active{transform:scale(.9)}
+.mp-btn-add.added{background:rgba(74,222,128,.3);opacity:.7;cursor:default}
+.mp-empty{text-align:center;padding:30px;color:var(--text3,#5a7a6c);font-size:12px}
+</style>
+
+<button id="modPanelBtn" onclick="openModPanel()" title="Панель модератора">
+<i class="fas fa-shield-halved"></i>
+</button>
+
+<div class="mp-overlay" id="mpOverlay">
+<div class="mp-box">
+<div class="mp-header">
+<h2><i class="fas fa-shield-halved"></i> Панель модератора</h2>
+<button onclick="closeModPanel()"><i class="fas fa-times"></i></button>
+</div>
+
+<div class="mp-tab-row">
+<button class="mp-tab active" data-tab="stats" onclick="mpSwitchTab('stats')"><i class="fas fa-chart-simple"></i> Аналитика</button>
+<button class="mp-tab" data-tab="users" onclick="mpSwitchTab('users')"><i class="fas fa-users"></i> Пользователи</button>
+</div>
+
+<div id="mpTabStats">
+<div class="mp-stats">
+<div class="mp-stat c-green"><div class="mp-num" id="mpTotalUsers">—</div><div class="mp-lbl">Всего юзеров</div></div>
+<div class="mp-stat c-green"><div class="mp-num" id="mpOnlineUsers">—</div><div class="mp-lbl">Онлайн сейчас</div></div>
+<div class="mp-stat c-blue"><div class="mp-num" id="mpTotalChats">—</div><div class="mp-lbl">Чатов</div></div>
+<div class="mp-stat c-purple"><div class="mp-num" id="mpTotalMsgs">—</div><div class="mp-lbl">Сообщений</div></div>
+<div class="mp-stat c-amber"><div class="mp-num" id="mpTotalNews">—</div><div class="mp-lbl">Новостей</div></div>
+<div class="mp-stat c-red"><div class="mp-num" id="mpTotalOutages">—</div><div class="mp-lbl">Перебоев</div></div>
+<div class="mp-stat c-cyan"><div class="mp-num" id="mpTotalStations">—</div><div class="mp-lbl">Станций</div></div>
+<div class="mp-stat c-pink"><div class="mp-num" id="mpTotalFriends">—</div><div class="mp-lbl">Дружб</div></div>
+</div>
+<div class="mp-section">
+<div class="mp-section-title"><i class="fas fa-clock"></i> Последние 10 регистраций</div>
+<div id="mpRecentUsers"><div class="mp-empty">Загрузка...</div></div>
+</div>
+</div>
+
+<div id="mpTabUsers" style="display:none">
+<div class="mp-section">
+<div class="mp-section-title"><i class="fas fa-users"></i> Все пользователи (<span id="mpUsersCount">0</span>)</div>
+<input type="text" class="mp-search" id="mpUserSearch" placeholder="🔍 Поиск по нику..." oninput="mpRenderUsers()">
+<div id="mpUsersList"><div class="mp-empty">Загрузка...</div></div>
+</div>
+</div>
+
+</div>
+</div>
+
+<script>
+// ========== МОДЕР-ПАНЕЛЬ ==========
+let mpAllUsers = {};
+let mpFriendsCache = {};
+
+// Показываем кнопку модера, если isModerator === true
+function mpUpdateButtonVisibility(){
+  const btn = document.getElementById('modPanelBtn');
+  if(!btn) return;
+  if(typeof isModerator !== 'undefined' && isModerator === true){
+    btn.classList.add('show');
+  } else {
+    btn.classList.remove('show');
+  }
+}
+// Проверяем каждые 2 секунды (когда currentProfile меняется)
+setInterval(mpUpdateButtonVisibility, 2000);
+// И при загрузке
+document.addEventListener('DOMContentLoaded', mpUpdateButtonVisibility);
+setTimeout(mpUpdateButtonVisibility, 500);
+setTimeout(mpUpdateButtonVisibility, 2000);
+
+function openModPanel(){
+  if(!currentUID || !currentProfile || !currentProfile.isModerator){
+    if(typeof toast === 'function') toast('Только для модераторов', 'shield-halved');
+    return;
+  }
+  document.getElementById('mpOverlay').classList.add('active');
+  mpLoadStats();
+  mpLoadUsers();
+}
+
+function closeModPanel(){
+  document.getElementById('mpOverlay').classList.remove('active');
+}
+
+function mpSwitchTab(tab){
+  document.querySelectorAll('.mp-tab').forEach(t=>t.classList.toggle('active', t.dataset.tab === tab));
+  document.getElementById('mpTabStats').style.display = tab === 'stats' ? 'block' : 'none';
+  document.getElementById('mpTabUsers').style.display = tab === 'users' ? 'block' : 'none';
+}
+
+async function mpLoadStats(){
+  try{
+    const usersSnap = await db.ref('users').once('value');
+    const users = usersSnap.val() || {};
+    const userList = Object.values(users);
+    document.getElementById('mpTotalUsers').textContent = userList.length;
+    document.getElementById('mpOnlineUsers').textContent = userList.filter(u => u.online === true).length;
+
+    const chatsSnap = await db.ref('chats').once('value');
+    const chats = chatsSnap.val() || {};
+    let totalMsgs = 0;
+    Object.values(chats).forEach(c => {
+      if(c && c.messages) totalMsgs += Object.keys(c.messages).length;
+    });
+    document.getElementById('mpTotalChats').textContent = Object.keys(chats).length;
+    document.getElementById('mpTotalMsgs').textContent = totalMsgs;
+
+    const newsSnap = await db.ref('news').once('value');
+    document.getElementById('mpTotalNews').textContent = Object.keys(newsSnap.val() || {}).length;
+
+    const outSnap = await db.ref('outages').once('value');
+    document.getElementById('mpTotalOutages').textContent = Object.keys(outSnap.val() || {}).length;
+
+    const stSnap = await db.ref('stations').once('value');
+    document.getElementById('mpTotalStations').textContent = Object.keys(stSnap.val() || {}).length;
+
+    const frSnap = await db.ref('friends').once('value');
+    const fr = frSnap.val() || {};
+    let totalFr = 0;
+    Object.values(fr).forEach(f => {
+      if(typeof f === 'object'){
+        totalFr += Object.keys(f).filter(k => f[k] === 'accepted' || f[k] === true).length;
+      }
+    });
+    document.getElementById('mpTotalFriends').textContent = Math.floor(totalFr / 2);
+
+    const sorted = userList.filter(u=>u.createdAt).sort((a,b)=>b.createdAt - a.createdAt).slice(0, 10);
+    const rec = document.getElementById('mpRecentUsers');
+    if(sorted.length === 0){
+      rec.innerHTML = '<div class="mp-empty">Нет данных</div>';
+    } else {
+      rec.innerHTML = sorted.map(u => {
+        const initial = (u.nickname||u.username||'?').charAt(0).toUpperCase();
+        const avatar = u.avatar ? '<img src="'+u.avatar+'">' : initial;
+        const isOnline = u.online === true;
+        const dateStr = new Date(u.createdAt).toLocaleString('ru-RU', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'});
+        return '<div class="mp-user'+(isOnline?' online':'')+'"><div class="mp-user-avatar">'+avatar+(isOnline?'<span class="on-dot"></span>':'')+'</div><div class="mp-user-info"><div class="mp-nick">'+escHtml(u.nickname||u.username||'?')+(u.isModerator?'<span class="mod-badge">MOD</span>':'')+'</div><div class="mp-meta">Зарегался: '+dateStr+'</div></div></div>';
+      }).join('');
+    }
+  }catch(e){ console.error(e); }
+}
+
+async function mpLoadUsers(){
+  try{
+    const snap = await db.ref('users').once('value');
+    mpAllUsers = snap.val() || {};
+    const frSnap = await db.ref('friends/'+currentUID).once('value');
+    mpFriendsCache = frSnap.val() || {};
+    mpRenderUsers();
+  }catch(e){ console.error(e); }
+}
+
+function mpRenderUsers(){
+  const q = (document.getElementById('mpUserSearch').value || '').toLowerCase();
+  const list = Object.values(mpAllUsers).filter(u => {
+    const name = (u.nickname || u.username || '').toLowerCase();
+    return name.includes(q);
+  });
+
+  list.sort((a, b) => {
+    if(a.online && !b.online) return -1;
+    if(!a.online && b.online) return 1;
+    return (b.createdAt||0) - (a.createdAt||0);
+  });
+
+  document.getElementById('mpUsersCount').textContent = list.length;
+
+  const box = document.getElementById('mpUsersList');
+  if(list.length === 0){
+    box.innerHTML = '<div class="mp-empty">Никого не найдено</div>';
+    return;
+  }
+
+  box.innerHTML = list.map(u => {
+    const uid = u.uid || u.id;
+    if(!uid) return '';
+    const initial = (u.nickname||u.username||'?').charAt(0).toUpperCase();
+    const avatar = u.avatar ? '<img src="'+u.avatar+'">' : initial;
+    const isOnline = u.online === true;
+    const isFriend = mpFriendsCache[uid] === 'accepted' || mpFriendsCache[uid] === true;
+    const isPending = mpFriendsCache[uid] === 'pending';
+    const isSelf = uid === currentUID;
+
+    let btn = '';
+    if(isSelf){
+      btn = '<span style="font-size:10px;color:var(--text3)">это ты</span>';
+    } else if(isFriend){
+      btn = '<button class="mp-btn-add added" disabled><i class="fas fa-check"></i> Друг</button>';
+    } else if(isPending){
+      btn = '<button class="mp-btn-add added" disabled><i class="fas fa-clock"></i> Отправлено</button>';
+    } else {
+      btn = '<button class="mp-btn-add" onclick="mpAddFriend(\''+uid+'\',this)"><i class="fas fa-user-plus"></i> В друзья</button>';
+    }
+
+    const meta = isOnline ? '● в сети' : (u.lastSeen ? 'был(а) '+(typeof fmtTime === 'function' ? fmtTime(u.lastSeen) : '') : 'не в сети');
+
+    return '<div class="mp-user'+(isOnline?' online':'')+'"><div class="mp-user-avatar">'+avatar+(isOnline?'<span class="on-dot"></span>':'')+'</div><div class="mp-user-info"><div class="mp-nick">'+escHtml(u.nickname||u.username||'?')+(u.isModerator?'<span class="mod-badge">MOD</span>':'')+(u.status?' '+u.status:'')+'</div><div class="mp-meta">'+meta+'</div></div><div class="mp-user-actions">'+btn+'</div></div>';
+  }).join('');
+}
+
+async function mpAddFriend(uid, btn){
+  if(!currentUID || !uid) return;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+  try{
+    await db.ref('friends/'+currentUID+'/'+uid).set('accepted');
+    await db.ref('friends/'+uid+'/'+currentUID).set('accepted');
+    mpFriendsCache[uid] = 'accepted';
+    btn.className = 'mp-btn-add added';
+    btn.innerHTML = '<i class="fas fa-check"></i> Друг';
+    if(typeof toast === 'function') toast('Добавлен в друзья', 'user-plus');
+  }catch(e){
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-user-plus"></i> В друзья';
+    if(typeof toast === 'function') toast('Ошибка: '+e.message, 'triangle-exclamation');
+  }
+}
+</script>
+<!-- ========== /МОДЕР-ПАНЕЛЬ ========== -->
 </body>
 </html>

@@ -34,6 +34,8 @@ body{font-family:-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--
 .btn{width:100%;padding:16px;border:none;border-radius:13px;background:linear-gradient(135deg,var(--amber3),var(--amber),var(--amber2));color:#000;font-weight:900;font-size:15px;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 6px 24px var(--amber-glow);text-decoration:none;margin-bottom:10px}
 .btn:active{transform:scale(.96)}
 .btn-yandex{background:linear-gradient(135deg,#fc3f1d,#e63312);color:#fff;box-shadow:0 6px 24px rgba(252,63,29,.5)}
+.swap-btn{background:var(--bg3);border:1px solid var(--border);color:var(--amber);width:40px;height:40px;border-radius:12px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
+.swap-btn:active{transform:scale(.9) rotate(180deg)}
 .suggestions{position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--amber);border-radius:12px;margin-top:4px;max-height:280px;overflow-y:auto;z-index:100;display:none;box-shadow:0 10px 40px rgba(0,0,0,.6)}
 .suggestions.show{display:block}
 .suggestion{padding:12px 15px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border)}
@@ -45,6 +47,8 @@ body{font-family:-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--
 .selected-card .sc-title{font-size:11px;color:var(--amber);font-weight:900;text-transform:uppercase;margin-bottom:6px}
 .selected-card .sc-name{font-size:15px;color:var(--text);font-weight:800;margin-bottom:4px}
 .selected-card .sc-region{font-size:11.5px;color:var(--text3)}
+.tip{background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:14px 16px;font-size:12px;color:var(--text2);line-height:1.6;display:flex;gap:10px;align-items:flex-start;margin-top:16px}
+.tip i{color:var(--amber);margin-top:2px}
 </style>
 </head>
 <body>
@@ -59,40 +63,52 @@ body{font-family:-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--
 <i class="fas fa-hourglass-half"></i>
 <div class="tb-content">
 <div class="tb-title">⏳ Временно через Яндекс.Расписания</div>
-<div class="tb-text">Полноценный поиск рейсов прямо на сайте — в разработке. Сейчас выбираешь станцию и дату → открывается официальное расписание Яндекса с рейсами с этой станции.</div>
+<div class="tb-text">Полноценный поиск рейсов прямо на сайте — в разработке. Сейчас выбираешь станции и дату → открывается официальное расписание Яндекса с рейсами.</div>
 </div>
 </div>
 
 <div class="hero">
 <div class="hero-icon">🎫</div>
 <h1>Поиск билетов</h1>
-<p>Выбери станцию и дату — покажем рейсы с этой станции</p>
+<p>Выбери маршрут и дату — покажем рейсы</p>
 </div>
 
 <div class="search-card">
 <div class="field">
-<label><i class="fas fa-map-pin"></i> Станция</label>
-<input type="text" id="stationInput" placeholder="Начни печатать: Ярославский, Сергиев..." autocomplete="off">
-<div class="suggestions" id="stationSuggestions"></div>
+<label><i class="fas fa-map-pin"></i> Откуда</label>
+<input type="text" id="fromInput" placeholder="Москва (Ярославский вокзал)" autocomplete="off">
+<div class="suggestions" id="fromSuggestions"></div>
+</div>
+<button class="swap-btn" onclick="swapStations()" title="Поменять местами"><i class="fas fa-arrow-down-up-across-line"></i></button>
+<div class="field">
+<label><i class="fas fa-flag-checkered"></i> Куда</label>
+<input type="text" id="toInput" placeholder="Сергиев Посад" autocomplete="off">
+<div class="suggestions" id="toSuggestions"></div>
 </div>
 <div class="field">
 <label><i class="fas fa-calendar"></i> Дата</label>
 <input type="date" id="dateInput">
 </div>
-<button class="btn btn-yandex" onclick="openStationSchedule()"><i class="fas fa-train"></i> Показать рейсы на Яндекс.Расписаниях</button>
+<button class="btn btn-yandex" onclick="openRouteSchedule()"><i class="fas fa-train"></i> Показать рейсы на Яндекс.Расписаниях</button>
 </div>
 
 <div class="selected-card" id="selectedCard">
-<div class="sc-title">Выбрана станция</div>
-<div class="sc-name" id="selectedName">—</div>
-<div class="sc-region" id="selectedRegion"></div>
+<div class="sc-title">Выбранный маршрут</div>
+<div class="sc-name" id="routeName">—</div>
+<div class="sc-region" id="routeDate"></div>
+</div>
+
+<div class="tip">
+<i class="fas fa-info-circle"></i>
+<span>Откроется официальное расписание Яндекс.Расписаний. Там все рейсы между станциями: <b>время, номера поездов, типы составов, цены, платформы</b>.</span>
 </div>
 
 </div>
 <script>
 const FB_URL='https://nexik-63c6c-default-rtdb.firebaseio.com';
 let allStations=[];
-let selectedStation=null;
+let fromStation=null;
+let toStation=null;
 let stationsLoaded=false;
 
 document.getElementById('dateInput').valueAsDate=new Date();
@@ -107,36 +123,58 @@ async function loadStations(){
     console.log('Загружено станций:',allStations.length);
   }catch(e){console.error('Ошибка загрузки:',e)}
 }
-function showSuggestions(input,container){
+function showSuggestions(input,container,type){
   const q=input.value.trim().toLowerCase();
   if(q.length<2){container.classList.remove('show');return}
   const matches=allStations.filter(s=>(s.title||'').toLowerCase().includes(q)).slice(0,10);
   if(matches.length===0){container.classList.remove('show');return}
-  container.innerHTML=matches.map(s=>'<div class="suggestion" onclick="selectStation(\''+s.code+'\')"><div>'+escHtml(s.title)+'</div><div class="region">'+escHtml(s.region||'')+'</div></div>').join('');
+  container.innerHTML=matches.map(s=>'<div class="suggestion" onclick="selectStation(\''+type+'\',\''+s.code+'\')"><div>'+escHtml(s.title)+'</div><div class="region">'+escHtml(s.region||'')+'</div></div>').join('');
   container.classList.add('show');
 }
-function selectStation(code){
+function selectStation(type,code){
   const st=allStations.find(s=>s.code===code);
   if(!st)return;
-  selectedStation=st;
-  document.getElementById('stationInput').value=st.title;
-  document.getElementById('stationSuggestions').classList.remove('show');
-  document.getElementById('selectedName').textContent=st.title;
-  document.getElementById('selectedRegion').textContent=st.region||'';
-  document.getElementById('selectedCard').classList.add('show');
+  if(type==='from'){fromStation=st;document.getElementById('fromInput').value=st.title;document.getElementById('fromSuggestions').classList.remove('show')}
+  else{toStation=st;document.getElementById('toInput').value=st.title;document.getElementById('toSuggestions').classList.remove('show')}
+  updateRouteCard();
+}
+function swapStations(){
+  const tmp=fromStation;fromStation=toStation;toStation=tmp;
+  const fromVal=document.getElementById('fromInput').value;
+  const toVal=document.getElementById('toInput').value;
+  document.getElementById('fromInput').value=toVal;
+  document.getElementById('toInput').value=fromVal;
+  updateRouteCard();
+}
+function updateRouteCard(){
+  const card=document.getElementById('selectedCard');
+  if(fromStation && toStation){
+    document.getElementById('routeName').textContent=fromStation.title+' → '+toStation.title;
+    document.getElementById('routeDate').textContent='Дата: '+(document.getElementById('dateInput').value||'—');
+    card.classList.add('show');
+  }else if(fromStation || toStation){
+    const s=fromStation||toStation;
+    document.getElementById('routeName').textContent=s.title;
+    document.getElementById('routeDate').textContent='Выбери вторую станцию';
+    card.classList.add('show');
+  }else{
+    card.classList.remove('show');
+  }
 }
 function escHtml(t){const d=document.createElement('div');d.textContent=t==null?'':String(t);return d.innerHTML}
-function openStationSchedule(){
-  if(!selectedStation){alert('Выбери станцию из списка');return}
+function openRouteSchedule(){
+  if(!fromStation||!toStation){alert('Выбери обе станции из списка');return}
   const date=document.getElementById('dateInput').value;
   if(!date){alert('Выбери дату');return}
-  // Открываем страницу станции на Яндекс.Расписаниях
-  const code = selectedStation.code.replace(/^s/,'');
-  const url = 'https://rasp.yandex.ru/station/' + code + '/suburban?date=' + date;
+  // Открываем Яндекс.Расписания с маршрутом
+  const url='https://rasp.yandex.ru/search/suburban/?fromName='+encodeURIComponent(fromStation.title)+'&toName='+encodeURIComponent(toStation.title)+'&when='+date;
   window.open(url,'_blank');
 }
-document.getElementById('stationInput').addEventListener('input',function(){showSuggestions(this,document.getElementById('stationSuggestions'))});
-document.getElementById('stationInput').addEventListener('focus',function(){loadStations()});
+document.getElementById('fromInput').addEventListener('input',function(){showSuggestions(this,document.getElementById('fromSuggestions'),'from')});
+document.getElementById('fromInput').addEventListener('focus',function(){loadStations()});
+document.getElementById('toInput').addEventListener('input',function(){showSuggestions(this,document.getElementById('toSuggestions'),'to')});
+document.getElementById('toInput').addEventListener('focus',function(){loadStations()});
+document.getElementById('dateInput').addEventListener('change',function(){updateRouteCard()});
 document.addEventListener('click',function(e){if(!e.target.closest('.field')){document.querySelectorAll('.suggestions').forEach(s=>s.classList.remove('show'))}});
 loadStations();
 </script>

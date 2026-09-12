@@ -885,5 +885,35 @@ renderLocos();loadNews();loadHomeNews();renderProfile();renderFriendRequests();r
 setTimeout(()=>{if(!localStorage.getItem('elkalive_onboarded'))openAdMode(true)},600);
 console.log('🚂 elkalive v24 — 10 new features');
 </script>
+<script>
+(function(){
+  function fixTickets(){
+    // Находим все элементы Билеты и заменяем на ссылки
+    var all = document.querySelectorAll('.sb-item, .nav-item, .quick-card');
+    all.forEach(function(el){
+      var text = el.textContent || '';
+      if(text.indexOf('Билеты') === -1) return;
+      // Если уже ссылка — пропускаем
+      if(el.tagName === 'A') return;
+      // Создаём ссылку
+      var a = document.createElement('a');
+      a.href = 'schedule.html';
+      a.className = el.className;
+      a.innerHTML = el.innerHTML;
+      a.style.textDecoration = 'none';
+      a.style.color = 'inherit';
+      el.parentNode.replaceChild(a, el);
+    });
+  }
+  // Запускаем после загрузки
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', fixTickets);
+  } else {
+    fixTickets();
+  }
+  // И ещё раз через 2 секунды (на случай поздней загрузки)
+  setTimeout(fixTickets, 2000);
+})();
+</script>
 </body>
 </html>

@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#e8f0ff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Шахид ✈</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-database-compat.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+input,textarea,select{-webkit-user-select:text;user-select:text;font-family:inherit}
+
+/* ============ ТЕТРАДНЫЙ ФОН ============ */
+html,body{height:100%;overflow:hidden;width:100%}
+body{
+  font-family:'Inter','SF Pro Display','Segoe UI',system-ui,sans-serif;
+  color:#1a2a4a;
+  background:#e8f0ff;
+  background-image:
+    linear-gradient(rgba(120,160,220,.35) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(120,160,220,.35) 1px,transparent 1px),
+    linear-gradient(rgba(120,160,220,.18) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(120,160,220,.18) 1px,transparent 1px);
+  background-size:80px 80px,80px 80px,20px 20px,20px 20px;
+  background-position:-1px -1px;
+  display:flex;justify-content:center;align-items:center;
+  -webkit-font-smoothing:antialiased;
+  overflow:hidden;
+  position:relative;
+}
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(circle at 15% 20%,rgba(100,150,255,.20),transparent 45%),
+    radial-gradient(circle at 85% 15%,rgba(255,120,180,.12),transparent 50%),
+    radial-gradient(circle at 75% 85%,rgba(120,220,255,.15),transparent 50%),
+    radial-gradient(circle at 20% 80%,rgba(180,140,255,.12),transparent 50%);
+}
+
+#app{
+  width:100%;height:100vh;height:100dvh;max-width:760px;
+  background:rgba(255,255,255,.55);
+  backdrop-filter:blur(30px) saturate(180%);
+  -webkit-backdrop-filter:blur(30px) saturate(180%);
+  border-left:1px solid rgba(255,255,255,.9);
+  border-right:1px solid rgba(255,255,255,.9);
+  display:flex;flex-direction:column;
+  position:relative;z-index:1;overflow:hidden;
+  box-shadow:0 0 60px rgba(60,100,180,.15);
+}
+
+@keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pop{0%{transform:scale(.85);opacity:0}100%{transform:scale(1);opacity:1}}
+@keyframes floatY{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes shine{0%{background-position:-200% 0}100%{background-position:200% 0}}
+
+/* ============ HEADER ============ */
+.header{
+  display:flex;align-items:center;gap:12px;
+  padding:16px 18px;
+  padding-top:calc(16px + env(safe-area-inset-top,0px));
+  background:rgba(255,255,255,.65);
+  backdrop-filter:blur(30px);
+  border-bottom:1px solid rgba(120,160,220,.25);
+  flex-shrink:0;
+  position:relative;
+}
+.header::after{
+  content:'';position:absolute;left:0;right:0;bottom:0;height:2px;
+  background:linear-gradient(90deg,transparent,#5b8def,#a78bfa,transparent);
+  opacity:.6;
+}
+.logo{
+  width:52px;height:52px;border-radius:16px;
+  background:linear-gradient(135deg,#5b8def,#a78bfa);
+  display:flex;align-items:center;justify-content:center;
+  font-size:26px;flex-shrink:0;
+  box-shadow:0 8px 24px rgba(91,141,239,.45),inset 0 1px 0 rgba(255,255,255,.6);
+  animation:floatY 3s infinite;
+  position:relative;overflow:hidden;
+}
+.logo::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(120deg,transparent 30%,rgba(255,255,255,.5) 50%,transparent 70%);
+  background-size:200% 100%;
+  animation:shine 3s infinite;
+}
+.brand-wrap{flex:1;min-width:0}
+.brand{
+  font-size:26px;font-weight:900;letter-spacing:-.5px;
+  background:linear-gradient(135deg,#5b8def,#a78bfa,#ec4899);
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;
+  line-height:1;
+}
+.sub{font-size:10.5px;color:#6b7ba8;margin-top:4px;font-weight:700;text-transform:uppercase;letter-spacing:1px}
+.counter-pill{
+  padding:8px 14px;border-radius:14px;
+  background:linear-gradient(135deg,#5b8def,#a78bfa);
+  color:#fff;font-size:13px;font-weight:900;
+  box-shadow:0 4px 14px rgba(91,141,239,.4);
+  flex-shrink:0;
+}
+
+/* ============ STATS ============ */
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px}
+.stat{
+  background:rgba(255,255,255,.75);
+  backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,.9);
+  border-radius:18px;padding:16px 8px;text-align:center;
+  box-shadow:0 6px 18px rgba(60,100,180,.08);
+  position:relative;overflow:hidden;
+}
+.stat::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,#5b8def,#a78bfa);
+}
+.stat.green::before{background:linear-gradient(90deg,#22c55e,#4ade80)}
+.stat.red::before{background:linear-gradient(90deg,#ef4444,#f87171)}
+.stat .num{
+  font-size:28px;font-weight:900;
+  background:linear-gradient(135deg,#5b8def,#a78bfa);
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+.stat.green .num{background:linear-gradient(135deg,#16a34a,#22c55e);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.stat.red .num{background:linear-gradient(135deg,#dc2626,#ef4444);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.stat .lbl{font-size:9.5px;color:#6b7ba8;margin-top:5px;font-weight:900;text-transform:uppercase;letter-spacing:.6px}
+
+/* ============ SEARCH ============ */
+.search-box{position:relative;margin-bottom:12px}
+.search-box input{
+  width:100%;padding:15px 16px 15px 46px;
+  border-radius:16px;border:1px solid rgba(255,255,255,.9);
+  background:rgba(255,255,255,.75);
+  backdrop-filter:blur(20px);
+  color:#1a2a4a;font-size:14px;outline:none;
+  box-shadow:0 6px 18px rgba(60,100,180,.08);
+}
+.search-box input:focus{border-color:#5b8def;box-shadow:0 6px 18px rgba(91,141,239,.2)}
+.search-box .si{position:absolute;left:17px;top:50%;transform:translateY(-50%);color:#5b8def;font-size:16px;pointer-events:none}
+
+/* ============ FILTERS ============ */
+.filters{display:flex;gap:6px;margin-bottom:16px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none}
+.filters::-webkit-scrollbar{display:none}
+.filter{
+  padding:10px 16px;border-radius:14px;
+  border:1px solid rgba(255,255,255,.9);
+  background:rgba(255,255,255,.7);
+  backdrop-filter:blur(20px);
+  color:#5a6a94;font-size:12.5px;font-weight:800;
+  cursor:pointer;white-space:nowrap;
+  transition:all .2s;
+  box-shadow:0 3px 10px rgba(60,100,180,.06);
+}
+.filter.active{
+  background:linear-gradient(135deg,#5b8def,#a78bfa);
+  border-color:transparent;color:#fff;
+  box-shadow:0 6px 18px rgba(91,141,239,.4);
+  transform:translateY(-1px);
+}
+
+/* ============ PLANE CARD ============ */
+.plane{
+  display:flex;align-items:center;gap:14px;
+  padding:14px;
+  background:rgba(255,255,255,.8);
+  backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,.9);
+  border-radius:20px;margin-bottom:10px;
+  box-shadow:0 6px 20px rgba(60,100,180,.1);
+  position:relative;overflow:hidden;
+  transition:transform .15s;
+  animation:slideUp .3s;
+}
+.plane:active{transform:scale(.985)}
+.plane::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:5px;
+  background:linear-gradient(180deg,#22c55e,#16a34a);
+}
+.plane.dead::before{background:linear-gradient(180deg,#ef4444,#dc2626)}
+.plane.dead{opacity:.75;background:rgba(255,245,245,.85)}
+
+.plane .em{
+  width:60px;height:60px;border-radius:18px;
+  background:linear-gradient(135deg,#eef4ff,#dbe6ff);
+  border:1px solid rgba(91,141,239,.2);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;font-size:30px;overflow:hidden;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.8);
+}
+.plane .em img{width:100%;height:100%;object-fit:cover;border-radius:17px}
+.plane .info{flex:1;min-width:0}
+.plane .info .name{
+  font-size:16px;font-weight:900;color:#1a2a4a;
+  display:flex;align-items:center;gap:7px;flex-wrap:wrap;
+  margin-bottom:4px;
+}
+.plane .info .name .tag{
+  font-size:9px;padding:3px 9px;border-radius:7px;font-weight:900;
+  text-transform:uppercase;letter-spacing:.5px;
+}
+.tag.normal{background:#dbeafe;color:#1e40af}
+.tag.combat{background:#fef3c7;color:#92400e}
+.tag.jet{background:#ede9fe;color:#6d28d9}
+.tag.jetcombat{background:#fee2e2;color:#991b1b}
+.plane .info .desc{
+  font-size:12px;color:#6b7ba8;line-height:1.4;
+  overflow:hidden;text-overflow:ellipsis;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+}
+.plane .info .meta{
+  font-size:10.5px;color:#9aa8c8;margin-top:5px;
+  display:flex;gap:10px;align-items:center;
+}
+.plane .info .meta i{color:#5b8def}
+.plane .actions{display:flex;flex-direction:column;gap:6px;flex-shrink:0}
+.plane .actions button{
+  width:44px;height:44px;border-radius:14px;border:none;
+  font-size:16px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .15s;
+  font-family:inherit;
+}
+.plane .actions button:active{transform:scale(.9)}
+.btn-kill{
+  background:linear-gradient(135deg,#fee2e2,#fecaca);color:#dc2626;
+  box-shadow:0 4px 12px rgba(220,38,38,.2);
+}
+.btn-revive{
+  background:linear-gradient(135deg,#dcfce7,#bbf7d0);color:#16a34a;
+  box-shadow:0 4px 12px rgba(22,163,74,.2);
+}
+.btn-edit{
+  background:linear-gradient(135deg,#eef4ff,#dbe6ff);color:#5b8def;
+  box-shadow:0 4px 12px rgba(91,141,239,.15);
+}
+
+/* ============ FAB ============ */
+.fab{
+  position:absolute;bottom:24px;right:20px;
+  width:64px;height:64px;border-radius:22px;
+  background:linear-gradient(135deg,#5b8def,#a78bfa);
+  border:none;color:#fff;font-size:26px;cursor:pointer;
+  box-shadow:0 10px 30px rgba(91,141,239,.5),inset 0 1px 0 rgba(255,255,255,.4);
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .15s;
+  z-index:50;
+}
+.fab:active{transform:scale(.9)}
+.fab::before{
+  content:'';position:absolute;inset:0;border-radius:22px;
+  background:linear-gradient(120deg,transparent 30%,rgba(255,255,255,.4) 50%,transparent 70%);
+  background-size:200% 100%;
+  animation:shine 3s infinite;
+  pointer-events:none;
+}
+
+/* ============ EMPTY ============ */
+.empty{
+  text-align:center;padding:80px 20px;color:#6b7ba8;
+}
+.empty .ic{font-size:70px;margin-bottom:16px;opacity:.5;animation:floatY 3s infinite}
+.empty .t{font-size:18px;font-weight:900;color:#1a2a4a;margin-bottom:6px}
+.empty .d{font-size:13px;color:#9aa8c8}
+
+/* ============ MODAL ============ */
+.modal-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(60,90,140,.35);
+  backdrop-filter:blur(20px);
+  z-index:9999;justify-content:center;align-items:center;
+  padding:16px;overflow-y:auto;
+}
+.modal-overlay.active{display:flex;animation:slideUp .25s}
+.modal-box{
+  background:rgba(255,255,255,.95);
+  backdrop-filter:blur(40px) saturate(180%);
+  border:1px solid rgba(255,255,255,.9);
+  border-radius:28px;
+  padding:26px;max-width:440px;width:100%;max-height:90vh;overflow-y:auto;
+  box-shadow:0 30px 80px rgba(60,100,180,.3),inset 0 1px 0 rgba(255,255,255,1);
+  position:relative;
+  animation:pop .25s;
+}
+.modal-box h3{
+  font-size:20px;font-weight:900;margin-bottom:18px;
+  display:flex;align-items:center;gap:10px;
+  background:linear-gradient(135deg,#5b8def,#a78bfa);
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+.modal-close{
+  float:right;background:rgba(91,141,239,.1);border:none;
+  color:#5b8def;font-size:18px;cursor:pointer;
+  width:36px;height:36px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+}
+
+.field{margin-bottom:16px}
+.field label{
+  font-size:11px;color:#6b7ba8;display:block;
+  margin-bottom:8px;font-weight:900;text-transform:uppercase;
+  letter-spacing:.5px;
+}
+.field input,.field textarea,.field select{
+  width:100%;padding:14px 16px;border-radius:14px;
+  border:1.5px solid rgba(91,141,239,.2);
+  background:rgba(255,255,255,.9);
+  color:#1a2a4a;font-size:14px;outline:none;
+  transition:all .2s;
+}
+.field input:focus,.field textarea:focus,.field select:focus{
+  border-color:#5b8def;background:#fff;
+  box-shadow:0 0 0 4px rgba(91,141,239,.1);
+}
+.field textarea{min-height:90px;resize:vertical}
+.field select{cursor:pointer}
+
+.btn{
+  width:100%;padding:15px;
+  border:none;border-radius:15px;
+  background:linear-gradient(135deg,#5b8def,#a78bfa);
+  color:#fff;font-weight:900;font-size:15px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  margin-bottom:10px;font-family:inherit;
+  box-shadow:0 8px 24px rgba(91,141,239,.4);
+  transition:transform .15s;
+}
+.btn:active{transform:scale(.97)}
+.btn-ghost{
+  background:rgba(255,255,255,.9);color:#5b8def;
+  border:1.5px solid #5b8def;box-shadow:none;
+}
+.btn-danger{
+  background:linear-gradient(135deg,#ef4444,#dc2626);
+  box-shadow:0 8px 24px rgba(220,38,38,.35);
+}
+
+/* ============ TOAST ============ */
+.toast{
+  position:fixed;bottom:100px;left:50%;
+  transform:translateX(-50%) translateY(120px);
+  background:rgba(26,42,74,.95);color:#fff;
+  backdrop-filter:blur(20px);
+  border-radius:16px;padding:13px 22px;
+  font-size:13px;font-weight:700;
+  z-index:10000;display:flex;align-items:center;gap:10px;
+  pointer-events:none;
+  transition:transform .4s cubic-bezier(.4,1.3,.5,1);
+  box-shadow:0 12px 40px rgba(60,100,180,.4);
+  max-width:90vw;
+}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast i{color:#4ade80;font-size:16px}
+
+/* ============ DESKTOP ============ */
+@media(min-width:900px){
+  #app{height:calc(100vh - 40px);border-radius:32px;border:1px solid rgba(255,255,255,.9)}
+  body{background-size:100px 100px,100px 100px,25px 25px,25px 25px}
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div class="header">
+    <div class="logo">✈️</div>
+    <div class="brand-wrap">
+      <div class="brand">Шахид</div>
+      <div class="sub">реестр бумажных самолётиков</div>
+    </div>
+    <div class="counter-pill" id="counterPill">0</div>
+  </div>
+
+  <div style="flex:1;overflow-y:auto;padding:16px;-webkit-overflow-scrolling:touch">
+
+    <div class="stats">
+      <div class="stat"><div class="num" id="statTotal">0</div><div class="lbl">Всего</div></div>
+      <div class="stat green"><div class="num" id="statAlive">0</div><div class="lbl">Живых</div></div>
+      <div class="stat red"><div class="num" id="statDead">0</div><div class="lbl">Убитых</div></div>
+    </div>
+
+    <div class="search-box">
+      <i class="fas fa-magnifying-glass si"></i>
+      <input type="text" id="searchInput" placeholder="Поиск самолётика..." oninput="renderPlanes()">
+    </div>
+
+    <div class="filters">
+      <button class="filter active" data-cat="all" onclick="setFilter('all',this)">🌐 Все</button>
+      <button class="filter" data-cat="alive" onclick="setFilter('alive',this)">✅ Живые</button>
+      <button class="filter" data-cat="dead" onclick="setFilter('dead',this)">☠️ Убитые</button>
+      <button class="filter" data-cat="normal" onclick="setFilter('normal',this)">🛩 Обычные</button>
+      <button class="filter" data-cat="combat" onclick="setFilter('combat',this)">⚔️ Боевые</button>
+      <button class="filter" data-cat="jet" onclick="setFilter('jet',this)">🚀 Реактивные</button>
+      <button class="filter" data-cat="jetcombat" onclick="setFilter('jetcombat',this)">🔥 Реактивно-боевые</button>
+    </div>
+
+    <div id="planesList"></div>
+
+    <div style="height:100px"></div>
+  </div>
+
+  <button class="fab" onclick="openAddPlane()" title="Добавить самолётик">
+    <i class="fas fa-plus"></i>
+  </button>
+</div>
+
+<input type="file" id="planePhotoInput" accept="image/*" style="display:none">
+
+<!-- Modal -->
+<div class="modal-overlay" id="planeOverlay">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('planeOverlay')">✕</button>
+    <h3 id="planeModalTitle">✈️ Новый самолётик</h3>
+    <div class="field">
+      <label>Название</label>
+      <input id="plName" placeholder="СШ1, Ш2, РШ9..." maxlength="30">
+    </div>
+    <div class="field">
+      <label>Тип</label>
+      <select id="plType">
+        <option value="normal">🛩 Обычный</option>
+        <option value="combat">⚔️ Боевой</option>
+        <option value="jet">🚀 Реактивный</option>
+        <option value="jetcombat">🔥 Реактивно-боевой</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Описание</label>
+      <textarea id="plDesc" placeholder="Из чего сделан, как летает..."></textarea>
+    </div>
+    <div class="field">
+      <label>Фото</label>
+      <div style="display:flex;gap:8px">
+        <input type="text" id="plPhoto" placeholder="URL или загрузи" style="flex:1">
+        <button type="button" class="btn btn-ghost" style="width:auto;padding:0 16px;margin:0" onclick="document.getElementById('planePhotoInput').click()"><i class="fas fa-upload"></i></button>
+      </div>
+      <div id="plPhotoProgress" style="font-size:11px;color:#6b7ba8;margin-top:8px"></div>
+    </div>
+    <button class="btn" onclick="savePlane()">💾 Сохранить</button>
+    <button class="btn btn-danger" id="plDeleteBtn" style="display:none" onclick="deletePlane()">🗑 Удалить</button>
+  </div>
+</div>
+
+<!-- Confirm -->
+<div class="modal-overlay" id="confirmOverlay">
+  <div class="modal-box" style="text-align:center">
+    <h3 style="justify-content:center">⚠️ Подтверждение</h3>
+    <div id="confirmTitle" style="font-size:15px;font-weight:800;color:#1a2a4a;margin-bottom:8px">Удалить?</div>
+    <div id="confirmDesc" style="font-size:13px;color:#6b7ba8;margin-bottom:18px"></div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-ghost" onclick="closeModal('confirmOverlay')" style="margin:0">Отмена</button>
+      <button class="btn btn-danger" id="confirmYes" style="margin:0">Да</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><i class="fas fa-check"></i><span id="toastText"></span></div>
+
+<script>
+/* ============================================================
+   ШАХИД — реестр бумажных самолётиков v2
+   Открытый доступ, синхронизация через Firebase
+   ============================================================ */
+
+const firebaseConfig={
+  apiKey:"AIzaSyCvC2P3ehBSFmZIMvieD9KYouGyjno4T70",
+  authDomain:"nexik-63c6c.firebaseapp.com",
+  databaseURL:"https://nexik-63c6c-default-rtdb.firebaseio.com",
+  projectId:"nexik-63c6c"
+};
+firebase.initializeApp(firebaseConfig);
+const db=firebase.database();
+
+const IMGBB_KEY="e95d7591bce7e9d9ab12197fd5eb0b26";
+
+/* ============ СТАРТОВЫЕ МОДЕЛИ (заполнятся один раз) ============ */
+const DEFAULT_PLANES=[
+  {name:'СШ1',type:'normal',desc:'Первый самолётик серии СШ. Простой, лёгкий.',alive:false},
+  {name:'Ш2',type:'normal',desc:'Улучшенная версия СШ1. Летает дальше.',alive:true},
+  {name:'Ш3',type:'normal',desc:'Третья модель. Стабильный полёт.',alive:true},
+  {name:'Ш4',type:'normal',desc:'Классика. Простой и надёжный.',alive:true},
+  {name:'Ш5',type:'normal',desc:'Модификация с увеличенным крылом.',alive:true},
+  {name:'Ш6',type:'normal',desc:'Шестая серия. Хорошая дальность.',alive:true},
+  {name:'БШ7',type:'combat',desc:'Боевой самолётик. Усиленная конструкция.',alive:true},
+  {name:'БШ8',type:'combat',desc:'Боевой, восьмая серия. Крепкий нос.',alive:true},
+  {name:'РШ9',type:'jet',desc:'Реактивный. Скоростной полёт.',alive:true},
+  {name:'РШБ10',type:'jetcombat',desc:'Реактивно-боевой. Топ серии.',alive:true}
+];
+
+let planes={};
+let currentFilter='all';
+let editingId=null;
+let initialized=false;
+
+/* ============ HELPERS ============ */
+function $(id){return document.getElementById(id)}
+function esc(t){const d=document.createElement('div');d.textContent=t==null?'':String(t);return d.innerHTML}
+function escUrl(u){return String(u||'').replace(/"/g,'%22').replace(/</g,'%3C').replace(/>/g,'%3E')}
+function toast(msg,icon){
+  const t=$('toast');
+  t.querySelector('i').className='fas fa-'+(icon||'check');
+  $('toastText').textContent=msg;
+  t.classList.add('show');
+  clearTimeout(window._toastT);
+  window._toastT=setTimeout(()=>t.classList.remove('show'),2200);
+}
+function openModal(id){$(id).classList.add('active')}
+function closeModal(id){$(id).classList.remove('active')}
+function showConfirm(title,desc,cb){
+  $('confirmTitle').textContent=title;
+  $('confirmDesc').textContent=desc||'';
+  $('confirmYes').onclick=()=>{closeModal('confirmOverlay');cb()};
+  openModal('confirmOverlay');
+}
+
+/* ============ SEED (заполнить при первом запуске) ============ */
+function seedIfEmpty(){
+  if(initialized)return;
+  db.ref('planes').once('value').then(s=>{
+    const data=s.val();
+    if(!data||Object.keys(data).length===0){
+      const updates={};
+      const now=Date.now();
+      DEFAULT_PLANES.forEach((p,i)=>{
+        const id='seed_'+i;
+        updates[id]={...p,createdAt:now-i*1000,author:'system'};
+      });
+      db.ref('planes').update(updates);
+    }
+  });
+  initialized=true;
+}
+
+/* ============ FIREBASE LISTENER ============ */
+db.ref('planes').on('value',s=>{
+  planes=s.val()||{};
+  renderPlanes();
+},err=>{
+  console.warn('Firebase error:',err.message);
+  renderPlanes();
+});
+
+seedIfEmpty();
+
+/* ============ RENDER ============ */
+function setFilter(f,btn){
+  currentFilter=f;
+  document.querySelectorAll('.filter').forEach(x=>x.classList.remove('active'));
+  btn.classList.add('active');
+  renderPlanes();
+}
+
+function renderPlanes(){
+  const list=$('planesList');
+  const q=($('searchInput').value||'').toLowerCase().trim();
+
+  let items=Object.entries(planes).map(([id,v])=>({id,...v}));
+
+  if(currentFilter==='alive')items=items.filter(p=>p.alive!==false);
+  else if(currentFilter==='dead')items=items.filter(p=>p.alive===false);
+  else if(currentFilter==='normal')items=items.filter(p=>p.type==='normal');
+  else if(currentFilter==='combat')items=items.filter(p=>p.type==='combat');
+  else if(currentFilter==='jet')items=items.filter(p=>p.type==='jet');
+  else if(currentFilter==='jetcombat')items=items.filter(p=>p.type==='jetcombat');
+
+  if(q)items=items.filter(p=>(p.name||'').toLowerCase().includes(q)||(p.desc||'').toLowerCase().includes(q));
+
+  items.sort((a,b)=>{
+    if((a.alive!==false)!==(b.alive!==false))return a.alive!==false?-1:1;
+    const na=parseInt((a.name||'').replace(/\D/g,''))||0;
+    const nb=parseInt((b.name||'').replace(/\D/g,''))||0;
+    return na-nb;
+  });
+
+  const all=Object.values(planes);
+  $('statTotal').textContent=all.length;
+  $('statAlive').textContent=all.filter(p=>p.alive!==false).length;
+  $('statDead').textContent=all.filter(p=>p.alive===false).length;
+  $('counterPill').textContent=all.filter(p=>p.alive!==false).length+' ✈';
+
+  if(items.length===0){
+    list.innerHTML='<div class="empty"><div class="ic">✈️</div><div class="t">Пусто</div><div class="d">Добавь первый самолётик кнопкой +</div></div>';
+    return;
+  }
+
+  const typeLabels={normal:'обычный',combat:'боевой',jet:'реактивный',jetcombat:'реактивно-боевой'};
+  const typeIcons={normal:'🛩',combat:'⚔️',jet:'🚀',jetcombat:'🔥'};
+
+  list.innerHTML=items.map(p=>{
+    const isAlive=p.alive!==false;
+    const emoji=typeIcons[p.type]||'✈️';
+    const photo=p.photo?'<img src="'+escUrl(p.photo)+'" onerror="this.style.display=\'none\';this.parentNode.textContent=\''+emoji+'\'">':emoji;
+    const meta=p.author&&p.author!=='system'?'<i class="fas fa-user"></i> '+esc(p.author):'<i class="fas fa-star"></i> серия';
+    return '<div class="plane '+(isAlive?'':'dead')+'">'+
+      '<div class="em">'+photo+'</div>'+
+      '<div class="info">'+
+        '<div class="name">'+esc(p.name||'Без названия')+' <span class="tag '+(p.type||'normal')+'">'+(typeLabels[p.type]||'обычный')+'</span></div>'+
+        '<div class="desc">'+esc(p.desc||'—')+'</div>'+
+        '<div class="meta">'+meta+'</div>'+
+      '</div>'+
+      '<div class="actions">'+
+        (isAlive
+          ?'<button class="btn-kill" onclick="toggleAlive(\''+p.id+'\',true)" title="Убит"><i class="fas fa-skull"></i></button>'
+          :'<button class="btn-revive" onclick="toggleAlive(\''+p.id+'\',false)" title="Жив"><i class="fas fa-heart"></i></button>')+
+        '<button class="btn-edit" onclick="openEditPlane(\''+p.id+'\')" title="Ред."><i class="fas fa-pen"></i></button>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+/* ============ TOGGLE ALIVE ============ */
+function toggleAlive(id,kill){
+  db.ref('planes/'+id+'/alive').set(kill?false:true).then(()=>{
+    toast(kill?'☠️ Убит':'✅ Жив',kill?'skull':'heart');
+  });
+}
+
+/* ============ ADD / EDIT ============ */
+function openAddPlane(){
+  editingId=null;
+  $('planeModalTitle').innerHTML='✈️ Новый самолётик';
+  $('plName').value='';
+  $('plType').value='normal';
+  $('plDesc').value='';
+  $('plPhoto').value='';
+  $('plPhotoProgress').textContent='';
+  $('plDeleteBtn').style.display='none';
+  openModal('planeOverlay');
+}
+
+function openEditPlane(id){
+  const p=planes[id];
+  if(!p)return;
+  editingId=id;
+  $('planeModalTitle').innerHTML='✏️ Редактировать';
+  $('plName').value=p.name||'';
+  $('plType').value=p.type||'normal';
+  $('plDesc').value=p.desc||'';
+  $('plPhoto').value=p.photo||'';
+  $('plPhotoProgress').textContent='';
+  $('plDeleteBtn').style.display='block';
+  openModal('planeOverlay');
+}
+
+function savePlane(){
+  const name=$('plName').value.trim();
+  if(!name){toast('Введи название','times');return}
+  const data={
+    name:name,
+    type:$('plType').value,
+    desc:$('plDesc').value.trim(),
+    photo:$('plPhoto').value.trim(),
+    author:'player',
+    updatedAt:Date.now()
+  };
+  if(editingId){
+    db.ref('planes/'+editingId).update(data).then(()=>{
+      closeModal('planeOverlay');
+      toast('💾 Сохранено','check');
+    });
+  }else{
+    data.alive=true;
+    data.createdAt=Date.now();
+    db.ref('planes').push(data).then(()=>{
+      closeModal('planeOverlay');
+      toast('✈️ Добавлено','check');
+    });
+  }
+}
+
+function deletePlane(){
+  if(!editingId)return;
+  showConfirm('Удалить самолётик?','Это действие нельзя отменить.',()=>{
+    db.ref('planes/'+editingId).remove().then(()=>{
+      closeModal('planeOverlay');
+      toast('🗑 Удалено','trash');
+    });
+  });
+}
+
+/* ============ PHOTO UPLOAD ============ */
+$('planePhotoInput').addEventListener('change',e=>{
+  const f=e.target.files[0];
+  if(!f)return;
+  const prog=$('plPhotoProgress');
+  prog.innerHTML='<i class="fas fa-spinner fa-spin"></i> Загрузка...';
+  const fd=new FormData();
+  fd.append('image',f);
+  fd.append('key',IMGBB_KEY);
+  fetch('https://api.imgbb.com/1/upload',{method:'POST',body:fd})
+    .then(r=>r.json())
+    .then(d=>{
+      if(!d.success)throw new Error('ImgBB');
+      $('plPhoto').value=d.data.url;
+      prog.innerHTML='<i class="fas fa-check-circle" style="color:#16a34a"></i> Загружено';
+    })
+    .catch(()=>{prog.innerHTML='<i class="fas fa-times-circle" style="color:#dc2626"></i> Ошибка'});
+  e.target.value='';
+});
+
+/* ============ INIT ============ */
+renderPlanes();
+console.log('✈️ Шахид v2 — реестр бумажных самолётиков');
+</script>
+</body>
+</html>

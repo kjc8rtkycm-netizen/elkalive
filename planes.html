@@ -1,0 +1,211 @@
+<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><meta name="theme-color" content="#fefefe"><title>ШIХiDik</title><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"><script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-database-compat.js"></script><style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+input,textarea,select{-webkit-user-select:text;user-select:text;font-family:inherit}
+html,body{height:100%;overflow:hidden;width:100%}
+body{font-family:'Inter',system-ui,sans-serif;color:#1a2a4a;background:#fefefe;background-image:linear-gradient(rgba(100,130,190,.55) 1.5px,transparent 1.5px),linear-gradient(90deg,rgba(100,130,190,.55) 1.5px,transparent 1.5px),linear-gradient(rgba(140,170,220,.28) 1px,transparent 1px),linear-gradient(90deg,rgba(140,170,220,.28) 1px,transparent 1px);background-size:80px 80px,80px 80px,20px 20px,20px 20px;display:flex;justify-content:center;align-items:center;position:relative;-webkit-font-smoothing:antialiased}
+body::before{content:'';position:fixed;left:calc(50% + 90px);top:0;bottom:0;width:2px;background:#e64a4a;z-index:0;pointer-events:none;opacity:.9}
+#app{width:100%;height:100vh;height:100dvh;max-width:760px;background:rgba(255,255,255,.72);backdrop-filter:blur(22px) saturate(180%);-webkit-backdrop-filter:blur(22px) saturate(180%);border-left:1px solid rgba(255,255,255,.9);border-right:1px solid rgba(255,255,255,.9);display:flex;flex-direction:column;position:relative;z-index:1;overflow:hidden;box-shadow:0 0 80px rgba(60,100,180,.12)}
+@keyframes slideUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pop{0%{transform:scale(.8);opacity:0}100%{transform:scale(1);opacity:1}}
+@keyframes floatY{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes shine{0%{background-position:-200% 0}100%{background-position:200% 0}}
+@keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(230,74,74,.4)}50%{box-shadow:0 0 0 12px rgba(230,74,74,0)}}
+/* HERO */
+.hero{padding:24px 20px 20px;padding-top:calc(24px + env(safe-area-inset-top,0px));background:linear-gradient(135deg,rgba(230,74,74,.85),rgba(167,139,250,.85));border-radius:0 0 32px 32px;position:relative;overflow:hidden;flex-shrink:0}
+.hero::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h60v60H0z' fill='none'/%3E%3Cpath d='M0 30h60M30 0v60' stroke='rgba(255,255,255,.08)' stroke-width='1'/%3E%3C/svg%3E");opacity:.5}
+.hero-top{display:flex;align-items:center;gap:14px;position:relative;z-index:2;margin-bottom:18px}
+.hero-logo{width:64px;height:64px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:32px;flex-shrink:0;box-shadow:0 8px 24px rgba(0,0,0,.2);animation:glow 2.5s infinite}
+.hero-title{flex:1;min-width:0}
+.hero-title .h1{font-size:30px;font-weight:900;color:#fff;letter-spacing:-.5px;line-height:1;text-shadow:0 2px 8px rgba(0,0,0,.15)}
+.hero-title .h2{font-size:11px;color:rgba(255,255,255,.9);margin-top:5px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px}
+.hero-actions{display:flex;gap:8px;position:relative;z-index:2}
+.hero-btn{flex:1;height:48px;border-radius:16px;background:rgba(255,255,255,.95);border:none;color:#1a2a4a;font-weight:900;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:transform .15s;box-shadow:0 6px 20px rgba(0,0,0,.12)}
+.hero-btn:active{transform:scale(.95)}
+.hero-btn.admin-on{background:#1a2a4a;color:#4ade80}
+/* STATS */
+.stats{display:flex;gap:10px;margin:-30px 16px 0;position:relative;z-index:5;flex-shrink:0}
+.stat{flex:1;background:rgba(255,255,255,.95);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,1);border-radius:18px;padding:14px 8px;text-align:center;box-shadow:0 10px 28px rgba(60,100,180,.15);animation:pop .4s}
+.stat .num{font-size:24px;font-weight:900;background:linear-gradient(135deg,#e64a4a,#a78bfa);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.stat.green .num{background:linear-gradient(135deg,#16a34a,#22c55e);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.stat.red .num{background:linear-gradient(135deg,#dc2626,#ef4444);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.stat .lbl{font-size:9px;color:#6b7ba8;margin-top:4px;font-weight:900;text-transform:uppercase;letter-spacing:.5px}
+/* TABS */
+.tabs{display:flex;gap:6px;padding:14px 16px 10px;overflow-x:auto;scrollbar-width:none;flex-shrink:0}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:10px 16px;border-radius:14px;border:1px solid rgba(150,170,220,.35);background:rgba(255,255,255,.85);color:#5a6a94;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;transition:all .2s;display:flex;align-items:center;gap:6px}
+.tab.active{background:linear-gradient(135deg,#e64a4a,#c93a3a);border-color:transparent;color:#fff;box-shadow:0 6px 18px rgba(230,74,74,.4)}
+/* SEARCH */
+.search-wrap{padding:0 16px 12px;flex-shrink:0}
+.search-box{position:relative}
+.search-box input{width:100%;padding:14px 16px 14px 44px;border-radius:16px;border:1px solid rgba(150,170,220,.35);background:rgba(255,255,255,.92);color:#1a2a4a;font-size:13.5px;outline:none;box-shadow:0 4px 12px rgba(60,100,180,.06)}
+.search-box input:focus{border-color:#e64a4a;box-shadow:0 0 0 4px rgba(230,74,74,.1)}
+.search-box .si{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:#e64a4a;font-size:15px;pointer-events:none}
+/* LIST */
+.list{flex:1;overflow-y:auto;padding:0 16px 120px;-webkit-overflow-scrolling:touch}
+.plane{display:flex;align-items:center;gap:12px;padding:14px;background:rgba(255,255,255,.92);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.95);border-radius:20px;margin-bottom:10px;box-shadow:0 6px 20px rgba(60,100,180,.08);position:relative;overflow:hidden;animation:slideUp .35s}
+.plane::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:linear-gradient(180deg,#22c55e,#16a34a)}
+.plane.dead::before{background:linear-gradient(180deg,#ef4444,#dc2626)}
+.plane.dead{opacity:.72;background:rgba(255,245,245,.9)}
+.p-av{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#eef4ff,#dbe6ff);border:1px solid rgba(91,141,239,.2);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;overflow:hidden;position:relative}
+.p-av img{width:100%;height:100%;object-fit:cover;border-radius:15px}
+.p-info{flex:1;min-width:0}
+.p-name{font-size:16px;font-weight:900;color:#1a2a4a;display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap}
+.p-av-mini{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#eef4ff,#dbe6ff);display:inline-flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;overflow:hidden;border:1px solid rgba(91,141,239,.2)}
+.p-av-mini img{width:100%;height:100%;object-fit:cover}
+.tag{font-size:9px;padding:3px 9px;border-radius:7px;font-weight:900;text-transform:uppercase}
+.tag.normal{background:#dbeafe;color:#1e40af}
+.tag.combat{background:#fef3c7;color:#92400e}
+.tag.jet{background:#ede9fe;color:#6d28d9}
+.tag.jetcombat{background:#fee2e2;color:#991b1b}
+.p-desc{font-size:12px;color:#6b7ba8;line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.p-acts{display:flex;flex-direction:column;gap:6px;flex-shrink:0}
+.p-acts button{width:42px;height:42px;border-radius:13px;border:none;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .15s}
+.p-acts button:active{transform:scale(.88)}
+.btn-kill{background:linear-gradient(135deg,#fee2e2,#fecaca);color:#dc2626}
+.btn-revive{background:linear-gradient(135deg,#dcfce7,#bbf7d0);color:#16a34a}
+.btn-edit{background:linear-gradient(135deg,#eef4ff,#dbe6ff);color:#5b8def}
+.fab{position:absolute;bottom:24px;right:20px;width:64px;height:64px;border-radius:22px;background:linear-gradient(135deg,#e64a4a,#c93a3a);border:none;color:#fff;font-size:26px;cursor:pointer;box-shadow:0 10px 30px rgba(230,74,74,.5);display:flex;align-items:center;justify-content:center;z-index:50;transition:transform .15s}
+.fab:active{transform:scale(.88)}
+.empty{text-align:center;padding:60px 20px;color:#6b7ba8}
+.empty .ic{font-size:64px;margin-bottom:14px;opacity:.5;animation:floatY 3s infinite}
+.empty .t{font-size:17px;font-weight:900;color:#1a2a4a;margin-bottom:6px}
+.empty .d{font-size:12.5px}
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(60,90,140,.4);backdrop-filter:blur(20px);z-index:9999;justify-content:center;align-items:center;padding:16px;overflow-y:auto}
+.modal-overlay.active{display:flex;animation:slideUp .25s}
+.modal-box{background:rgba(255,255,255,.98);backdrop-filter:blur(40px);border:1px solid rgba(255,255,255,.95);border-radius:28px;padding:24px;max-width:440px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 30px 80px rgba(60,100,180,.35);position:relative;animation:pop .25s}
+.modal-box h3{font-size:19px;font-weight:900;margin-bottom:18px;color:#1a2a4a;display:flex;align-items:center;gap:10px}
+.modal-close{float:right;background:rgba(230,74,74,.1);border:none;color:#e64a4a;font-size:18px;cursor:pointer;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.field{margin-bottom:16px}
+.field label{font-size:11px;color:#6b7ba8;display:block;margin-bottom:8px;font-weight:900;text-transform:uppercase;letter-spacing:.5px}
+.field input,.field textarea,.field select{width:100%;padding:14px 16px;border-radius:14px;border:1.5px solid rgba(150,170,220,.35);background:rgba(255,255,255,.95);color:#1a2a4a;font-size:14px;outline:none;transition:all .2s}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:#e64a4a;box-shadow:0 0 0 4px rgba(230,74,74,.1)}
+.field textarea{min-height:90px;resize:vertical}
+.btn{width:100%;padding:15px;border:none;border-radius:15px;background:linear-gradient(135deg,#e64a4a,#c93a3a);color:#fff;font-weight:900;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px;transition:transform .15s;box-shadow:0 8px 24px rgba(230,74,74,.4)}
+.btn:active{transform:scale(.97)}
+.btn-ghost{background:rgba(255,255,255,.9);color:#e64a4a;border:1.5px solid #e64a4a;box-shadow:none}
+.btn-danger{background:linear-gradient(135deg,#ef4444,#dc2626);box-shadow:0 8px 24px rgba(220,38,38,.35)}
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(120px);background:rgba(26,42,74,.96);color:#fff;backdrop-filter:blur(20px);border-radius:16px;padding:13px 22px;font-size:13px;font-weight:700;z-index:10000;display:flex;align-items:center;gap:10px;pointer-events:none;transition:transform .4s cubic-bezier(.4,1.3,.5,1);box-shadow:0 12px 40px rgba(60,100,180,.4);max-width:90vw}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast i{color:#4ade80;font-size:16px}
+.game-overlay{display:none;position:fixed;inset:0;background:rgba(10,15,30,.96);backdrop-filter:blur(20px);z-index:10001;flex-direction:column;align-items:center;justify-content:center;padding:16px}
+.game-overlay.active{display:flex}
+.game-header{display:flex;justify-content:space-between;width:100%;max-width:600px;padding:12px 16px;color:#fff;font-weight:900;font-size:16px;margin-bottom:8px}
+.game-canvas{background:linear-gradient(180deg,#1a2a4a 0%,#3a4a6a 50%,#5a4a3a 100%);border-radius:20px;box-shadow:0 20px 60px rgba(230,74,74,.4);max-width:100%;touch-action:none;cursor:crosshair}
+.game-close{position:absolute;top:20px;right:20px;background:rgba(255,255,255,.2);border:none;color:#fff;font-size:20px;width:44px;height:44px;border-radius:50%;cursor:pointer;z-index:10002}
+.game-hint{color:rgba(255,255,255,.7);font-size:12px;margin-top:12px;text-align:center}
+@media(min-width:900px){#app{height:calc(100vh - 40px);border-radius:32px}}
+</style></head><body><div id="app">
+<div class="hero">
+<div class="hero-top">
+<div class="hero-logo">🛩</div>
+<div class="hero-title"><div class="h1">ШIХiDik</div><div class="h2">реестр воздушных целей</div></div>
+</div>
+<div class="hero-actions">
+<button class="hero-btn" id="adminBtn" onclick="openAdminModal()"><i class="fas fa-lock"></i> <span>Админ</span></button>
+<button class="hero-btn" onclick="openGame()"><i class="fas fa-crosshairs"></i> <span>Игра</span></button>
+</div>
+</div>
+<div class="stats">
+<div class="stat"><div class="num" id="statTotal">0</div><div class="lbl">Всего</div></div>
+<div class="stat green"><div class="num" id="statAlive">0</div><div class="lbl">Активных</div></div>
+<div class="stat red"><div class="num" id="statDead">0</div><div class="lbl">Сбито</div></div>
+</div>
+<div class="tabs">
+<button class="tab active" data-cat="all" onclick="setFilter('all',this)">🌐 Все</button>
+<button class="tab" data-cat="alive" onclick="setFilter('alive',this)">✅ Активные</button>
+<button class="tab" data-cat="dead" onclick="setFilter('dead',this)">☠️ Сбитые</button>
+<button class="tab" data-cat="normal" onclick="setFilter('normal',this)">🛩 Обычные</button>
+<button class="tab" data-cat="combat" onclick="setFilter('combat',this)">⚔️ Боевые</button>
+<button class="tab" data-cat="jet" onclick="setFilter('jet',this)">🚀 Реактивные</button>
+<button class="tab" data-cat="jetcombat" onclick="setFilter('jetcombat',this)">🔥 Реактивно-боевые</button>
+</div>
+<div class="search-wrap"><div class="search-box"><i class="fas fa-magnifying-glass si"></i><input type="text" id="searchInput" placeholder="Поиск шахеда..." oninput="renderAll()"></div></div>
+<div class="list" id="listBlock"></div>
+<button class="fab" id="fabAdd" onclick="openAddPlane()" style="display:none"><i class="fas fa-plus"></i></button>
+</div>
+<input type="file" id="planePhotoInput" accept="image/*" style="display:none">
+<div class="modal-overlay" id="adminOverlay"><div class="modal-box" style="max-width:360px"><button class="modal-close" onclick="closeModal('adminOverlay')">✕</button><h3>🔐 Режим администратора</h3><div class="field"><label>Пароль</label><input type="password" id="adminPass" placeholder="••••••••"></div><div id="adminErr" style="display:none;font-size:12px;color:#dc2626;text-align:center;padding:8px;background:#fee2e2;border-radius:10px;margin-bottom:10px"></div><button class="btn" id="adminLoginBtn" onclick="tryAdmin()">Войти</button><button class="btn btn-ghost" id="adminLogoutBtn" style="display:none" onclick="logoutAdmin()">Выйти из режима</button></div></div>
+<div class="modal-overlay" id="planeOverlay"><div class="modal-box"><button class="modal-close" onclick="closeModal('planeOverlay')">✕</button><h3 id="planeModalTitle">🛩 Новый шахед</h3><div class="field"><label>Название</label><input id="plName" placeholder="СШ1, Ш2..." maxlength="30"></div><div class="field"><label>Тип</label><select id="plType"><option value="normal">🛩 Обычный</option><option value="combat">⚔️ Боевой</option><option value="jet">🚀 Реактивный</option><option value="jetcombat">🔥 Реактивно-боевой</option></select></div><div class="field"><label>Описание</label><textarea id="plDesc" placeholder="Характеристики..."></textarea></div><div class="field"><label>Фото</label><div style="display:flex;gap:8px"><input type="text" id="plPhoto" placeholder="URL или загрузи" style="flex:1"><button type="button" class="btn btn-ghost" style="width:auto;padding:0 16px;margin:0" onclick="document.getElementById('planePhotoInput').click()"><i class="fas fa-upload"></i></button></div><div id="plPhotoProgress" style="font-size:11px;color:#6b7ba8;margin-top:8px"></div></div><button class="btn" onclick="savePlane()">💾 Сохранить</button><button class="btn btn-danger" id="plDeleteBtn" style="display:none" onclick="deletePlane()">🗑 Удалить</button></div></div>
+<div class="modal-overlay" id="confirmOverlay"><div class="modal-box" style="text-align:center"><h3 style="justify-content:center">⚠️ Подтверждение</h3><div id="confirmTitle" style="font-size:15px;font-weight:800;color:#1a2a4a;margin-bottom:8px">Удалить?</div><div id="confirmDesc" style="font-size:13px;color:#6b7ba8;margin-bottom:18px"></div><div style="display:flex;gap:10px"><button class="btn btn-ghost" onclick="closeModal('confirmOverlay')" style="margin:0">Отмена</button><button class="btn btn-danger" id="confirmYes" style="margin:0">Да</button></div></div></div>
+<div class="game-overlay" id="gameOverlay"><button class="game-close" onclick="closeGame()">✕</button><div class="game-header"><div>🎯 Счёт: <span id="gameScore">0</span></div><div>❤️ <span id="gameLives">3</span></div></div><canvas class="game-canvas" id="gameCanvas" width="600" height="700"></canvas><div class="game-hint">Тапни по летящему шахеду — сбей его!</div></div>
+<div class="toast" id="toast"><i class="fas fa-check"></i><span id="toastText"></span></div>
+<script>
+const firebaseConfig={apiKey:"AIzaSyCvC2P3ehBSFmZIMvieD9KYouGyjno4T70",authDomain:"nexik-63c6c.firebaseapp.com",databaseURL:"https://nexik-63c6c-default-rtdb.firebaseio.com",projectId:"nexik-63c6c"};
+firebase.initializeApp(firebaseConfig);
+const db=firebase.database();
+const IMGBB_KEY="e95d7591bce7e9d9ab12197fd5eb0b26";
+const ADMIN_PASS="ЖОПА01231₽";
+let isAdmin=false,planes={},currentFilter='all',editingId=null,initialized=false;
+const DEFAULT_PLANES=[
+{name:'СШ1',type:'normal',desc:'Первый серии СШ. Убит.',alive:false},
+{name:'Ш2',type:'normal',desc:'Улучшенная версия. Летает дальше.',alive:true},
+{name:'Ш3',type:'normal',desc:'Третья модель. Стабильный полёт.',alive:true},
+{name:'Ш4',type:'normal',desc:'Классика. Простой и надёжный.',alive:true},
+{name:'Ш5',type:'normal',desc:'Модификация с увеличенным крылом.',alive:true},
+{name:'Ш6',type:'normal',desc:'Шестая серия. Хорошая дальность.',alive:true},
+{name:'БШ7',type:'combat',desc:'Боевой самолётик. Усиленная конструкция.',alive:true},
+{name:'БШ8',type:'combat',desc:'Боевой, восьмая серия. Крепкий нос.',alive:true},
+{name:'РШ9',type:'jet',desc:'Реактивный. Скоростной полёт.',alive:true},
+{name:'РШБ10',type:'jetcombat',desc:'Реактивно-боевой. Топ серии.',alive:true}
+];
+function $(id){return document.getElementById(id)}
+function esc(t){const d=document.createElement('div');d.textContent=t==null?'':String(t);return d.innerHTML}
+function escUrl(u){return String(u||'').replace(/"/g,'%22').replace(/</g,'%3C').replace(/>/g,'%3E')}
+function toast(msg,icon){const t=$('toast');t.querySelector('i').className='fas fa-'+(icon||'check');$('toastText').textContent=msg;t.classList.add('show');clearTimeout(window._tt);window._tt=setTimeout(()=>t.classList.remove('show'),2200)}
+function openModal(id){$(id).classList.add('active')}
+function closeModal(id){$(id).classList.remove('active')}
+function showConfirm(title,desc,cb){$('confirmTitle').textContent=title;$('confirmDesc').textContent=desc||'';$('confirmYes').onclick=()=>{closeModal('confirmOverlay');cb()};openModal('confirmOverlay')}
+function seedIfEmpty(){if(initialized)return;db.ref('planes').once('value').then(s=>{const d=s.val();if(!d||Object.keys(d).length===0){const u={},now=Date.now();DEFAULT_PLANES.forEach((p,i)=>{u['seed_'+i]={...p,createdAt:now-i*1000,author:'system'}});db.ref('planes').update(u)}});initialized=true}
+db.ref('planes').on('value',s=>{planes=s.val()||{};renderAll()});
+seedIfEmpty();
+function openAdminModal(){if(isAdmin){logoutAdmin();return}$('adminPass').value='';$('adminErr').style.display='none';openModal('adminOverlay')}
+function tryAdmin(){const p=$('adminPass').value;if(p===ADMIN_PASS){isAdmin=true;closeModal('adminOverlay');toast('🔓 Режим админа','unlock');updateAdminUI()}else{$('adminErr').textContent='Неверный пароль';$('adminErr').style.display='block'}}
+function logoutAdmin(){isAdmin=false;toast('🔒 Режим выключен','lock');updateAdminUI()}
+function updateAdminUI(){const b=$('adminBtn');b.classList.toggle('admin-on',isAdmin);b.innerHTML=isAdmin?'<i class="fas fa-unlock"></i> <span>Админ ✓</span>':'<i class="fas fa-lock"></i> <span>Админ</span>';$('fabAdd').style.display=isAdmin?'flex':'none';$('adminLogoutBtn').style.display=isAdmin?'flex':'none';$('adminLoginBtn').style.display=isAdmin?'none':'flex';renderAll()}
+function setFilter(f,btn){currentFilter=f;document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));btn.classList.add('active');renderAll()}
+function renderAll(){
+const q=($('searchInput').value||'').toLowerCase().trim();
+let items=Object.entries(planes).map(([id,v])=>({id,...v}));
+if(currentFilter==='alive')items=items.filter(p=>p.alive!==false);
+else if(currentFilter==='dead')items=items.filter(p=>p.alive===false);
+else if(currentFilter==='normal')items=items.filter(p=>p.type==='normal');
+else if(currentFilter==='combat')items=items.filter(p=>p.type==='combat');
+else if(currentFilter==='jet')items=items.filter(p=>p.type==='jet');
+else if(currentFilter==='jetcombat')items=items.filter(p=>p.type==='jetcombat');
+if(q)items=items.filter(p=>(p.name||'').toLowerCase().includes(q)||(p.desc||'').toLowerCase().includes(q));
+items.sort((a,b)=>{if((a.alive!==false)!==(b.alive!==false))return a.alive!==false?-1:1;const na=parseInt((a.name||'').replace(/\D/g,''))||0;const nb=parseInt((b.name||'').replace(/\D/g,''))||0;return na-nb});
+const all=Object.values(planes);
+$('statTotal').textContent=all.length;
+$('statAlive').textContent=all.filter(p=>p.alive!==false).length;
+$('statDead').textContent=all.filter(p=>p.alive===false).length;
+if(items.length===0){$('listBlock').innerHTML='<div class="empty"><div class="ic">🛩</div><div class="t">Пусто</div><div class="d">'+(isAdmin?'Добавь кнопкой +':'Войди как админ')+'</div></div>';return}
+const typeLabels={normal:'обычный',combat:'боевой',jet:'реактивный',jetcombat:'реактивно-боевой'};
+const typeIcons={normal:'🛩',combat:'⚔️',jet:'🚀',jetcombat:'🔥'};
+$('listBlock').innerHTML=items.map(p=>{
+const isAlive=p.alive!==false;
+const emoji=typeIcons[p.type]||'🛩';
+const avMini=p.photo?'<span class="p-av-mini"><img src="'+escUrl(p.photo)+'" onerror="this.style.display=\'none\';this.parentNode.textContent=\''+emoji+'\'"></span>':'<span class="p-av-mini">'+emoji+'</span>';
+const actions=isAdmin?'<div class="p-acts">'+(isAlive?'<button class="btn-kill" onclick="event.stopPropagation();toggleAlive(\''+p.id+'\',true)"><i class="fas fa-skull"></i></button>':'<button class="btn-revive" onclick="event.stopPropagation();toggleAlive(\''+p.id+'\',false)"><i class="fas fa-heart"></i></button>')+'<button class="btn-edit" onclick="event.stopPropagation();openEditPlane(\''+p.id+'\')"><i class="fas fa-pen"></i></button></div>':'';
+return '<div class="plane '+(isAlive?'':'dead')+'"><div class="p-av">'+(p.photo?'<img src="'+escUrl(p.photo)+'" onerror="this.style.display=\'none\';this.parentNode.textContent=\''+emoji+'\'">':emoji)+'</div><div class="p-info"><div class="p-name">'+avMini+esc(p.name||'—')+' <span class="tag '+(p.type||'normal')+'">'+(typeLabels[p.type]||'обычный')+'</span></div><div class="p-desc">'+esc(p.desc||'—')+'</div></div>'+actions+'</div>';
+}).join('');
+}
+function toggleAlive(id,kill){db.ref('planes/'+id+'/alive').set(kill?false:true).then(()=>{toast(kill?'☠️ Сбит':'✅ Активен',kill?'skull':'heart')})}
+function openAddPlane(){if(!isAdmin){toast('Нужен режим админа','lock');return}editingId=null;$('planeModalTitle').innerHTML='🛩 Новый шахед';$('plName').value='';$('plType').value='normal';$('plDesc').value='';$('plPhoto').value='';$('plPhotoProgress').textContent='';$('plDeleteBtn').style.display='none';openModal('planeOverlay')}
+function openEditPlane(id){if(!isAdmin)return;const p=planes[id];if(!p)return;editingId=id;$('planeModalTitle').innerHTML='✏️ Редактировать';$('plName').value=p.name||'';$('plType').value=p.type||'normal';$('plDesc').value=p.desc||'';$('plPhoto').value=p.photo||'';$('plPhotoProgress').textContent='';$('plDeleteBtn').style.display='block';openModal('planeOverlay')}
+function savePlane(){if(!isAdmin)return;const name=$('plName').value.trim();if(!name){toast('Введи название','times');return}const data={name,type:$('plType').value,desc:$('plDesc').value.trim(),photo:$('plPhoto').value.trim(),updatedAt:Date.now()};if(editingId){db.ref('planes/'+editingId).update(data).then(()=>{closeModal('planeOverlay');toast('💾 Сохранено')})}else{data.alive=true;data.createdAt=Date.now();db.ref('planes').push(data).then(()=>{closeModal('planeOverlay');toast('🛩 Добавлено')})}}
+function deletePlane(){if(!isAdmin||!editingId)return;showConfirm('Удалить шахеда?','Нельзя отменить.',()=>{db.ref('planes/'+editingId).remove().then(()=>{closeModal('planeOverlay');toast('🗑 Удалено')})})}
+$('planePhotoInput').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const prog=$('plPhotoProgress');prog.innerHTML='<i class="fas fa-spinner fa-spin"></i> Загрузка...';const fd=new FormData();fd.append('image',f);fd.append('key',IMGBB_KEY);fetch('https://api.imgbb.com/1/upload',{method:'POST',body:fd}).then(r=>r.json()).then(d=>{if(!d.success)throw new Error('ImgBB');$('plPhoto').value=d.data.url;prog.innerHTML='<i class="fas fa-check-circle" style="color:#16a34a"></i> Загружено'}).catch(()=>{prog.innerHTML='<i class="fas fa-times-circle" style="color:#dc2626"></i> Ошибка'});e.target.value=''});
+let gameLoop=null,gameShahids=[],gameScore=0,gameLives=3,gameHouses=[];
+function openGame(){$('gameOverlay').classList.add('active');startGame()}
+function closeGame(){$('gameOverlay').classList.remove('active');if(gameLoop)cancelAnimationFrame(gameLoop);gameLoop=null}
+function startGame(){const c=$('gameCanvas');const ctx=c.getContext('2d');gameShahids=[];gameScore=0;gameLives=3;gameHouses=[];for(let i=0;i<8;i++){gameHouses.push({x:i*80+20,y:c.height-180,w:70,h:120,c:['#8b5a3c','#a06a4a','#7a4a2c'][i%3]})}$('gameScore').textContent='0';$('gameLives').textContent='3';let spawnT=0;let last=Date.now();
+function loop(){const now=Date.now();const dt=now-last;last=now;spawnT+=dt;if(spawnT>1500){spawnT=0;gameShahids.push({x:-60,y:60+Math.random()*260,vx:1.5+Math.random()*1.5,emoji:['🛩','🚀','✈️'][Math.floor(Math.random()*3)]})}
+const g=ctx.createLinearGradient(0,0,0,c.height);g.addColorStop(0,'#1a2a4a');g.addColorStop(.6,'#3a4a6a');g.addColorStop(1,'#5a4a3a');ctx.fillStyle=g;ctx.fillRect(0,0,c.width,c.height);
+ctx.fillStyle='#f5f7ff';for(let i=0;i<20;i++){const sx=(i*97)%c.width,sy=(i*53)%200;ctx.globalAlpha=.6;ctx.beginPath();ctx.arc(sx,sy,1.5,0,Math.PI*2);ctx.fill()}ctx.globalAlpha=1;
+gameHouses.forEach(h=>{ctx.fillStyle=h.c;ctx.fillRect(h.x,h.y,h.w,h.h);ctx.fillStyle='#2a1a0a';for(let r=0;r<3;r++){for(let cc=0;cc<3;cc++){ctx.fillRect(h.x+8+cc*22,h.y+12+r*36,14,20)}}});
+for(let i=gameShahids.length-1;i>=0;i--){const s=gameShahids[i];s.x+=s.vx;ctx.save();ctx.shadowColor='rgba(255,100,100,.5)';ctx.shadowBlur=15;ctx.font='36px serif';ctx.textAlign='center';ctx.fillText(s.emoji,s.x,s.y);ctx.restore();if(s.x>c.width+60){gameShahids.splice(i,1);gameLives--;$('gameLives').textContent=gameLives;if(gameLives<=0){ctx.fillStyle='rgba(0,0,0,.7)';ctx.fillRect(0,0,c.width,c.height);ctx.fillStyle='#fff';ctx.font='bold 48px sans-serif';ctx.textAlign='center';ctx.fillText('ИГРА ОКОНЧЕНА',c.width/2,c.height/2);ctx.font='bold 24px sans-serif';ctx.fillText('Счёт: '+gameScore,c.width/2,c.height/2+50);setTimeout(()=>{if(gameLoop)cancelAnimationFrame(gameLoop)},100);return}}}
+gameLoop=requestAnimationFrame(loop)}loop();
+c.onclick=(e)=>{const r=c.getBoundingClientRect();const x=(e.clientX-r.left)*(c.width/r.width);const y=(e.clientY-r.top)*(c.height/r.height);for(let i=gameShahids.length-1;i>=0;i--){const s=gameShahids[i];if(Math.abs(s.x-x)<35&&Math.abs(s.y-y)<35){gameShahids.splice(i,1);gameScore+=10;$('gameScore').textContent=gameScore;break}}}}
+renderAll();updateAdminUI();console.log('🛩 ШIХiDik v3');
+</script></body></html>
